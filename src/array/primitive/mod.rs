@@ -252,6 +252,25 @@ impl<T: NativeType> PrimitiveArray<T> {
         arr
     }
 
+    /// Returns a new [`PrimitiveArray`] by taking every buffer from this one, leaving this one empty.
+    pub fn take(&mut self) -> Self {
+        Self {
+            data_type: self.data_type.clone(),
+            values: std::mem::take(&mut self.values),
+            validity: std::mem::take(&mut self.validity),
+        }
+    }
+
+    /// Deconstructs this [`PrimitiveArray`] into its internal components
+    pub fn into_inner(self) -> (DataType, Buffer<T>, Option<Bitmap>) {
+        let Self {
+            data_type,
+            values,
+            validity,
+        } = self;
+        (data_type, values, validity)
+    }
+
     /// Try to convert this [`PrimitiveArray`] to a [`MutablePrimitiveArray`] via copy-on-write semantics.
     ///
     /// A [`PrimitiveArray`] is backed by a [`Buffer`] and [`Bitmap`] which are essentially `Arc<Vec<_>>`.
@@ -384,6 +403,11 @@ impl<T: NativeType> PrimitiveArray<T> {
 impl<T: NativeType> Array for PrimitiveArray<T> {
     #[inline]
     fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    #[inline]
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
         self
     }
 

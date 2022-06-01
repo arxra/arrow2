@@ -51,6 +51,12 @@ impl<T: NativeType> PartialEq<&dyn Array> for PrimitiveArray<T> {
     }
 }
 
+impl<T: NativeType> PartialEq<PrimitiveArray<T>> for &dyn Array {
+    fn eq(&self, other: &PrimitiveArray<T>) -> bool {
+        equal(*self, other)
+    }
+}
+
 impl<T: NativeType> PartialEq<PrimitiveArray<T>> for PrimitiveArray<T> {
     fn eq(&self, other: &Self) -> bool {
         primitive::equal::<T>(self, other)

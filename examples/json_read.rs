@@ -1,12 +1,11 @@
 use std::fs::File;
 use std::io::BufReader;
-use std::sync::Arc;
 
 use arrow2::array::Array;
 use arrow2::error::Result;
 use arrow2::io::json::read;
 
-fn read_path(path: &str) -> Result<Arc<dyn Array>> {
+fn read_path(path: &str) -> Result<Box<dyn Array>> {
     // Example of reading a JSON file.
     let reader = BufReader::new(File::open(path)?);
     let json = serde_json::from_reader(reader)?;

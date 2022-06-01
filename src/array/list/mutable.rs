@@ -53,7 +53,7 @@ impl<O: Offset, M: MutableArray> From<MutableListArray<O, M>> for ListArray<O> {
         ListArray::new(
             other.data_type,
             other.offsets.into(),
-            other.values.as_arc(),
+            other.values.as_box(),
             other.validity.map(|x| x.into()),
         )
     }
@@ -212,7 +212,7 @@ impl<O: Offset, M: MutableArray + Default + 'static> MutableArray for MutableLis
         Box::new(ListArray::new(
             self.data_type.clone(),
             std::mem::take(&mut self.offsets).into(),
-            self.values.as_arc(),
+            self.values.as_box(),
             std::mem::take(&mut self.validity).map(|x| x.into()),
         ))
     }
@@ -221,7 +221,7 @@ impl<O: Offset, M: MutableArray + Default + 'static> MutableArray for MutableLis
         Arc::new(ListArray::new(
             self.data_type.clone(),
             std::mem::take(&mut self.offsets).into(),
-            self.values.as_arc(),
+            self.values.as_box(),
             std::mem::take(&mut self.validity).map(|x| x.into()),
         ))
     }

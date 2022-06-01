@@ -28,9 +28,12 @@ pub(self) mod physical_binary;
 
 /// A trait representing an immutable Arrow array. Arrow arrays are trait objects
 /// that are infallibly downcasted to concrete types according to the [`Array::data_type`].
-pub trait Array: Send + Sync {
-    /// Convert to trait object.
+pub trait Array: Send + Sync + dyn_clone::DynClone + 'static {
+    /// Converts itself to a reference of [`Any`], which enables downcasting to concrete types.
     fn as_any(&self) -> &dyn Any;
+
+    /// Converts itself to a mutable reference of [`Any`], which enables mutable downcasting to concrete types.
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 
     /// The length of the [`Array`]. Every array has a length corresponding to the number of
     /// elements (slots).
@@ -107,6 +110,8 @@ pub trait Array: Send + Sync {
     /// Clone a `&dyn Array` to an owned `Box<dyn Array>`.
     fn to_boxed(&self) -> Box<dyn Array>;
 }
+
+dyn_clone::clone_trait_object!(Array);
 
 /// A trait describing a mutable array; i.e. an array whose values can be changed.
 /// Mutable arrays cannot be cloned but can be mutated in place,

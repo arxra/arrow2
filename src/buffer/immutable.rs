@@ -137,7 +137,7 @@ impl<T: NativeType> Buffer<T> {
         self.offset
     }
 
-    /// Converts this [`Buffer`] to [`Vec`], returning itself if the conversion
+    /// Converts this [`Buffer`] to either a [`Buffer`] or a [`Vec`], returning itself if the conversion
     /// is not possible
     ///
     /// This operation returns a [`Vec`] iff this [`Buffer`]:
@@ -155,6 +155,18 @@ impl<T: NativeType> Buffer<T> {
                 }
                 None => Either::Left(self),
             }
+        }
+    }
+
+    /// Converts this [`Buffer`] to a [`Vec`], cloning the data if needed, also
+    /// known as clone-on-write semantics.
+    ///
+    /// This function does not clone the data under the same conditions
+    /// that [`Self::into_mut`] returns `Vec`.
+    pub fn make_mut(self) -> Vec<T> {
+        match self.into_mut() {
+            Either::Left(data) => data.as_ref().to_vec(),
+            Either::Right(data) => data,
         }
     }
 }

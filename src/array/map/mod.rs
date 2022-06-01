@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     bitmap::Bitmap,
     buffer::Buffer,
@@ -19,7 +17,7 @@ pub struct MapArray {
     data_type: DataType,
     // invariant: field.len() == offsets.len() - 1
     offsets: Buffer<i32>,
-    field: Arc<dyn Array>,
+    field: Box<dyn Array>,
     // invariant: offsets.len() - 1 == Bitmap::len()
     validity: Option<Bitmap>,
 }
@@ -36,7 +34,7 @@ impl MapArray {
     pub fn try_new(
         data_type: DataType,
         offsets: Buffer<i32>,
-        field: Arc<dyn Array>,
+        field: Box<dyn Array>,
         validity: Option<Bitmap>,
     ) -> Result<Self, Error> {
         try_check_offsets(&offsets, field.len())?;
@@ -85,7 +83,7 @@ impl MapArray {
     pub fn new(
         data_type: DataType,
         offsets: Buffer<i32>,
-        field: Arc<dyn Array>,
+        field: Box<dyn Array>,
         validity: Option<Bitmap>,
     ) -> Self {
         Self::try_new(data_type, offsets, field, validity).unwrap()
@@ -95,7 +93,7 @@ impl MapArray {
     pub fn from_data(
         data_type: DataType,
         offsets: Buffer<i32>,
-        field: Arc<dyn Array>,
+        field: Box<dyn Array>,
         validity: Option<Bitmap>,
     ) -> Self {
         Self::new(data_type, offsets, field, validity)
@@ -103,7 +101,7 @@ impl MapArray {
 
     /// Returns a new null [`MapArray`] of `length`.
     pub fn new_null(data_type: DataType, length: usize) -> Self {
-        let field = new_empty_array(Self::get_field(&data_type).data_type().clone()).into();
+        let field = new_empty_array(Self::get_field(&data_type).data_type().clone());
         Self::new(
             data_type,
             vec![0i32; 1 + length].into(),
@@ -114,7 +112,7 @@ impl MapArray {
 
     /// Returns a new empty [`MapArray`].
     pub fn new_empty(data_type: DataType) -> Self {
-        let field = new_empty_array(Self::get_field(&data_type).data_type().clone()).into();
+        let field = new_empty_array(Self::get_field(&data_type).data_type().clone());
         Self::new(data_type, Buffer::from(vec![0i32]), field, None)
     }
 
@@ -189,7 +187,7 @@ impl MapArray {
 
     /// Returns the field (guaranteed to be a `Struct`)
     #[inline]
-    pub fn field(&self) -> &Arc<dyn Array> {
+    pub fn field(&self) -> &Box<dyn Array> {
         &self.field
     }
 
@@ -222,6 +220,11 @@ impl MapArray {
 impl Array for MapArray {
     #[inline]
     fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    #[inline]
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
         self
     }
 
