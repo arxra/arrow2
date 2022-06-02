@@ -11,7 +11,7 @@ type ChunkBox = Chunk<Box<dyn Array>>;
 
 fn write(array: &dyn Array, encoding: Encoding) -> Result<()> {
     let schema = Schema::from(vec![Field::new("c1", array.data_type().clone(), true)]);
-    let columns: ChunkBox = Chunk::new(vec![clone(array).into()]);
+    let columns: ChunkBox = Chunk::new(vec![clone(array)]);
 
     let options = WriteOptions {
         write_statistics: false,

@@ -53,6 +53,28 @@ pub struct PrimitiveArray<T: NativeType> {
     validity: Option<Bitmap>,
 }
 
+fn check<T: NativeType>(
+    data_type: &DataType,
+    values: &[T],
+    validity: &Option<Bitmap>,
+) -> Result<(), Error> {
+    if validity
+        .as_ref()
+        .map_or(false, |validity| validity.len() != values.len())
+    {
+        return Err(Error::oos(
+            "validity mask length must match the number of values",
+        ));
+    }
+
+    if data_type.to_physical_type() != PhysicalType::Primitive(T::PRIMITIVE) {
+        return Err(Error::oos(
+            "BooleanArray can only be initialized with a DataType whose physical type is Primitive",
+        ));
+    }
+    Ok(())
+}
+
 impl<T: NativeType> PrimitiveArray<T> {
     /// The canonical method to create a [`PrimitiveArray`] out of its internal components.
     /// # Implementation
@@ -67,21 +89,7 @@ impl<T: NativeType> PrimitiveArray<T> {
         values: Buffer<T>,
         validity: Option<Bitmap>,
     ) -> Result<Self, Error> {
-        if validity
-            .as_ref()
-            .map_or(false, |validity| validity.len() != values.len())
-        {
-            return Err(Error::oos(
-                "validity mask length must match the number of values",
-            ));
-        }
-
-        if data_type.to_physical_type() != PhysicalType::Primitive(T::PRIMITIVE) {
-            return Err(Error::oos(
-                "BooleanArray can only be initialized with a DataType whose physical type is Primitive",
-            ));
-        }
-
+        check(&data_type, &values, &validity)?;
         Ok(Self {
             data_type,
             values,
@@ -109,14 +117,7 @@ impl<T: NativeType> PrimitiveArray<T> {
     #[inline]
     #[must_use]
     pub fn to(self, data_type: DataType) -> Self {
-        if !data_type.to_physical_type().eq_primitive(T::PRIMITIVE) {
-            Err(Error::InvalidArgumentError(format!(
-                "Type {} does not support logical type {:?}",
-                std::any::type_name::<T>(),
-                data_type
-            )))
-            .unwrap()
-        }
+        check(&data_type, &self.values, &self.validity).unwrap();
         Self {
             data_type,
             values: self.values,
@@ -252,13 +253,35 @@ impl<T: NativeType> PrimitiveArray<T> {
         arr
     }
 
-    /// Returns a new [`PrimitiveArray`] by taking every buffer from this one, leaving this one empty.
+    /// Returns a new [`PrimitiveArray`] by taking everything from this one.
+    #[must_use]
     pub fn take(&mut self) -> Self {
+        let mut data_type: DataType = T::PRIMITIVE.into();
+        std::mem::swap(&mut self.data_type, &mut data_type);
         Self {
-            data_type: self.data_type.clone(),
+            data_type,
             values: std::mem::take(&mut self.values),
             validity: std::mem::take(&mut self.validity),
         }
+    }
+
+    /// Tries to assign the arguments to itself.
+    ///
+    /// This function is semantically similar to [`Self::try_new`] but it can be used to populate an existing
+    /// Array.
+    /// # Errors
+    /// Errors iff the `data_type`'s [`PhysicalType`] is not equal to [`PhysicalType::Primitive(T::PRIMITIVE)`]
+    pub fn try_assign(
+        &mut self,
+        data_type: DataType,
+        values: Buffer<T>,
+        validity: Option<Bitmap>,
+    ) -> Result<(), Error> {
+        check(&data_type, &self.values, &self.validity)?;
+        self.data_type = data_type;
+        self.values = values;
+        self.validity = validity;
+        Ok(())
     }
 
     /// Deconstructs this [`PrimitiveArray`] into its internal components
