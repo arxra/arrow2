@@ -5,7 +5,7 @@ use arrow2::{
 };
 
 // this function will clone-on-write the array and apply `f` to its values
-fn cow_apply<T: NativeType, F: Fn(&mut [T])>(array: &mut Box<dyn Array>, f: F) {
+fn cow_apply<T: NativeType, F: Fn(&mut [T])>(array: &mut dyn Array, f: F) {
     // 1. downcast the array to its concrete type
     let array = array
         .as_any_mut()
@@ -33,7 +33,7 @@ fn main() {
     let mut array = PrimitiveArray::from_vec(vec![1i32, 2]).boxed();
 
     // we can apply a transformation to its values without allocating a new array as follows:
-    cow_apply(&mut array, |values: &mut [i32]| {
+    cow_apply(array.as_mut(), |values: &mut [i32]| {
         values.iter_mut().for_each(|x| *x *= 10)
     });
 

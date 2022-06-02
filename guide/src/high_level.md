@@ -278,6 +278,6 @@ and operated in place.
 Below is a complete example of how to operate on a `Box<dyn Array>` without 
 extra allocations.
 
-```rust
-{{#include ../../examples/cow.rs}}
+```rust,ignore
+{{#include ../examples/cow.rs}}
 ```

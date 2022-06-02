@@ -139,7 +139,7 @@ pub trait MutableArray: std::fmt::Debug + Send + Sync {
     // This provided implementation has an extra allocation as it first
     // boxes `self`, then converts the box into an `Arc`. Implementors may wish
     // to avoid an allocation by skipping the box completely.
-    fn as_arc(&mut self) -> Arc<dyn Array> {
+    fn as_arc(&mut self) -> std::sync::Arc<dyn Array> {
         self.as_box().into()
     }
 
@@ -427,9 +427,3 @@ pub unsafe trait GenericBinaryArray<O: Offset>: Array {
     /// The offsets of the array
     fn offsets(&self) -> &[O];
 }
-
-// backward compatibility
-use std::sync::Arc;
-
-/// A type def of [`Array`].
-pub type ArrayRef = Arc<dyn Array>;

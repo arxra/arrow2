@@ -34,9 +34,10 @@ pub fn from_rust_iterator(py: Python) -> PyResult<PyObject> {
     let array = Int32Array::from(&[Some(2), None, Some(1), None]);
     let array = StructArray::from_data(
         DataType::Struct(vec![Field::new("a", array.data_type().clone(), true)]),
-        vec![Box::new(array)],
+        vec![array.boxed()],
         None,
-    );
+    )
+    .boxed();
     // and a field with its datatype
     let field = Field::new("a", array.data_type().clone(), true);
 

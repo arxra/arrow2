@@ -21,7 +21,7 @@ impl PartialEq for dyn Array + '_ {
     }
 }
 
-impl PartialEq<dyn Array> for Arc<dyn Array + '_> {
+impl PartialEq<dyn Array> for std::sync::Arc<dyn Array + '_> {
     fn eq(&self, that: &dyn Array) -> bool {
         equal(&**self, that)
     }

@@ -18,7 +18,6 @@ use super::{Encoding, SchemaDescriptor, WriteOptions};
 /// # Examples
 ///
 /// ```
-/// use std::sync::Box;
 /// use futures::SinkExt;
 /// use arrow2::array::{Array, Int32Array};
 /// use arrow2::datatypes::{DataType, Field, Schema};

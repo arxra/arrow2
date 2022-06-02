@@ -14,7 +14,6 @@ mod iterator;
 /// multiple [`Array`] with the same number of rows.
 /// # Example
 /// ```
-/// use std::sync::Box;
 /// use arrow2::array::*;
 /// use arrow2::datatypes::*;
 /// let boolean = BooleanArray::from_slice(&[false, false, true, true]).boxed();
